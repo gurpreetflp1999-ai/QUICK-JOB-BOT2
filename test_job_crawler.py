@@ -160,23 +160,14 @@ def call_llm(system_prompt, user_prompt):
         except Exception:
             continue
     return None
-
 # ============================================================
-# AGENT 1: वेब स्कैनर (Requests और बेहतर सेशन के साथ)
+# AGENT 1: वेब स्कैनर
 # ============================================================
 def agent_1_scanner(target, processed_urls):
-    import requests
     print(f"\n🔍 [एजेंट 1 - स्कैनर] स्कैनिंग: {target['name']}...")
-    
-    session = requests.Session()
-    session.headers.update(BROWSER_HEADERS)
-    
     try:
-        response = session.get(target["url"], timeout=30, verify=False)
-        if response.status_code != 200:
-            print(f"  [-] पोर्टल से गलत स्टेटस कोड मिला: {response.status_code}")
-            return None
-        html = response.text
+        req = urllib.request.Request(target["url"], headers=BROWSER_HEADERS)
+        html = urllib.request.urlopen(req, context=ssl_ctx, timeout=30).read().decode('utf-8', errors='ignore')
     except Exception as e:
         print(f"  [-] पोर्टल लोड नहीं हो सका: {e}")
         return None
