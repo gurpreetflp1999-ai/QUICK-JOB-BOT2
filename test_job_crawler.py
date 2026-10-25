@@ -161,32 +161,28 @@ def call_llm(system_prompt, user_prompt):
             continue
     return None
 # ============================================================
-# AGENT 1: वेब स्कैनर (Selenium Headless Browser - सरकारी पोर्टल्स के लिए)
+# AGENT 1: वेब स्कैनर (प्रॉक्सी और स्मार्ट हेडर के साथ - क्लाउड के लिए)
 # ============================================================
 def agent_1_scanner(target, processed_urls):
-    print(f"\n🔍 [एजेंट 1 - स्कैनर] हेडलेस ब्राउज़र से स्कैनिंग: {target['name']}...")
+    import urllib.parse
+    print(f"\n🔍 [एजेंट 1 - स्कैनर] प्रॉक्सी के जरिए स्कैनिंग: {target['name']}...")
     
-    options = Options()
-    options.add_argument("--headless")  # बिना स्क्रीन के बैकग्राउंड में चलेगा
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
-
-    driver = webdriver.Chrome(options=options)
-    driver.set_page_load_timeout(45)
+    # सरकारी वेबसाइट्स को बायपास करने के लिए फ्री रोटेटिंग प्रॉक्सी सर्विस का उपयोग
+    target_url = target["url"]
+    proxy_wrapped_url = f"https://api.allorigins.win/raw?url={urllib.parse.quote(target_url)}"
 
     try:
-        driver.get(target["url"])
-        time.sleep(3) # पेज को पूरी तरह लोड होने का समय दें
-        html = driver.page_source
+        req = urllib.request.Request(proxy_wrapped_url, headers=BROWSER_HEADERS)
+        html = urllib.request.urlopen(req, context=ssl_ctx, timeout=30).read().decode('utf-8', errors='ignore')
     except Exception as e:
-        print(f"  [-] ब्राउज़र पोर्टल लोड नहीं कर सका: {e}")
-        driver.quit()
-        return None
-
-    driver.quit()
+        print(f"  [-] प्रॉक्सी से पोर्टल लोड नहीं हुआ, डायरेक्ट कोशिश जारी: {e}")
+        try:
+            # अगर प्रॉक्सी काम न करे तो डायरेक्ट तरीका
+            req_direct = urllib.request.Request(target_url, headers=BROWSER_HEADERS)
+            html = urllib.request.urlopen(req_direct, context=ssl_ctx, timeout=30).read().decode('utf-8', errors='ignore')
+        except Exception as e2:
+            print(f"  [-] पोर्टल लोड नहीं हो सका: {e2}")
+            return None
 
     soup = BeautifulSoup(html, 'html.parser')
     for a in soup.find_all('a', href=True):
