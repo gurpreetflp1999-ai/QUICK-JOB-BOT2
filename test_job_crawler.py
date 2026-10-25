@@ -161,16 +161,32 @@ def call_llm(system_prompt, user_prompt):
             continue
     return None
 # ============================================================
-# AGENT 1: वेब स्कैनर
+# AGENT 1: वेब स्कैनर (Selenium Headless Browser - सरकारी पोर्टल्स के लिए)
 # ============================================================
 def agent_1_scanner(target, processed_urls):
-    print(f"\n🔍 [एजेंट 1 - स्कैनर] स्कैनिंग: {target['name']}...")
+    print(f"\n🔍 [एजेंट 1 - स्कैनर] हेडलेस ब्राउज़र से स्कैनिंग: {target['name']}...")
+    
+    options = Options()
+    options.add_argument("--headless")  # बिना स्क्रीन के बैकग्राउंड में चलेगा
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+
+    driver = webdriver.Chrome(options=options)
+    driver.set_page_load_timeout(45)
+
     try:
-        req = urllib.request.Request(target["url"], headers=BROWSER_HEADERS)
-        html = urllib.request.urlopen(req, context=ssl_ctx, timeout=30).read().decode('utf-8', errors='ignore')
+        driver.get(target["url"])
+        time.sleep(3) # पेज को पूरी तरह लोड होने का समय दें
+        html = driver.page_source
     except Exception as e:
-        print(f"  [-] पोर्टल लोड नहीं हो सका: {e}")
+        print(f"  [-] ब्राउज़र पोर्टल लोड नहीं कर सका: {e}")
+        driver.quit()
         return None
+
+    driver.quit()
 
     soup = BeautifulSoup(html, 'html.parser')
     for a in soup.find_all('a', href=True):
