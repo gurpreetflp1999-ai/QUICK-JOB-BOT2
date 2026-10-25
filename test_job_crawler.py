@@ -35,11 +35,11 @@ if sys.platform == 'win32':
 # CONFIGURATION
 # ============================================================
 import os
-OPENROUTER_API_KEY = os.getenv("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")
+OPENROUTER_API_KEY = os.getenv("")
 		       
-SENDER_GMAIL = os.getenv("gurpreetflp1999@gmail.com")
-GMAIL_APP_PASSWORD = os.getenv("byeq ukyl hlcj wfqk")
-BLOGGER_SECRET_EMAIL = os.getenv("gurpreetflp1999.jiyaai@blogger.com")
+SENDER_GMAIL = os.getenv("")
+GMAIL_APP_PASSWORD = os.getenv("")
+BLOGGER_SECRET_EMAIL = os.getenv("")
 
 BLOG_URL = "https://quickonlineform.blogspot.com"
 PROCESSED_FILE = "processed_notices.txt"
