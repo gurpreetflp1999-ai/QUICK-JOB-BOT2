@@ -34,11 +34,9 @@ if sys.platform == 'win32':
 # ============================================================
 # CONFIGURATION
 # ============================================================
-import os
-OPENROUTER_API_KEY = os.getenv("")
-		       
+OPENROUTER_API_KEY = os.getenv("")		       
 SENDER_GMAIL = os.getenv("")
-GMAIL_APP_PASSWORD = os.getenv("")
+GMAIL_APP_PASSWORD = os.getenv("k")
 BLOGGER_SECRET_EMAIL = os.getenv("")
 
 BLOG_URL = "https://quickonlineform.blogspot.com"
@@ -166,13 +164,13 @@ def call_llm(system_prompt, user_prompt):
     return None
 
 # ============================================================
-# AGENT 1: वेब स्कैनर
+# AGENT 1: वेब स्कैनर (टाइमआउट 30 सेकंड किया गया है)
 # ============================================================
 def agent_1_scanner(target, processed_urls):
     print(f"\n🔍 [एजेंट 1 - स्कैनर] स्कैनिंग: {target['name']}...")
     try:
         req = urllib.request.Request(target["url"], headers=BROWSER_HEADERS)
-        html = urllib.request.urlopen(req, context=ssl_ctx, timeout=15).read().decode('utf-8', errors='ignore')
+        html = urllib.request.urlopen(req, context=ssl_ctx, timeout=30).read().decode('utf-8', errors='ignore')
     except Exception as e:
         print(f"  [-] पोर्टल लोड नहीं हो सका: {e}")
         return None
@@ -211,7 +209,7 @@ def agent_1_scanner(target, processed_urls):
     return None
 
 # ============================================================
-# AGENT 2: फ़ैक्ट चेकर (Strict Short Notice Auto-Reject)
+# AGENT 2: फ़ैक्ट चेकर
 # ============================================================
 def agent_2_fact_checker(title, raw_text, portal_name):
     print("  [एजेंट 2 - स्ट्रक्चरर] डेटा विश्लेषण और पूर्णता जाँच...")
@@ -285,7 +283,7 @@ def agent_2_fact_checker(title, raw_text, portal_name):
     }
 
 # ============================================================
-# AGENT 3: HTML/CSS डिज़ाइनर (Smart Layouts for Job vs Admit Card)
+# AGENT 3: HTML/CSS डिज़ाइनर
 # ============================================================
 def agent_3_designer(data, portal_url, doc_url, labels_list, post_uid, deep_link):
     category = data.get("category", "Job")
@@ -510,12 +508,12 @@ def agent_5_publisher(clean_title, html_content, labels_list, data, post_uid):
     if category == "Admit Card":
         wa_msg = (f"🎟️ *{headline} – ਐਡਮਿਟ ਕਾਰਡ / ਪੇਪਰ ਮਿਤੀ ਜਾਰੀ!* 🎟️\n\n"
                   f"📍 *ਪ੍ਰੀਖਿਆ ਮਿਤੀ / ਸ਼ਡਿਊल:* {last_date_pa}\n\n"
-                  f"ਉਮੀਦਵਾਰਾਂ ਲਈ ਪ੍ਰੀਖਿਆ ਅਤੇ ਐਡਮਿਟ ਕਾਰਡ ਸਬੰਧੀ ਨਵਾਂ ਨੋਟਿਸ ਜਾਰੀ ਕਰ ਦਿੱਤਾ ਗਿਆ ਹੈ।\n\n"
+                  f"ਉਮੀਦਵਾਰਾਂ ਲਈ ਪ੍ਰੀਖਿਆ और ਐਡਮਿਟ ਕਾਰਡ ਸਬੰਧੀ ਨਵਾਂ ਨੋਟਿਸ ਜਾਰੀ कर ਦਿੱਤਾ ਗਿਆ है।\n\n"
                   f"🔗 ਐਡਮਿਟ ਕਾਰਡ ਡਾਊਨਲੋਡ ਲਿੰਕ:\n👉 {exact_url}\n\nਜਾਣਕਾਰੀ ਲਈ ਜੁੜੇ ਰਹੋ: 👉 Gurpreet Telecom & Cafe")
     elif category == "Result":
         wa_msg = (f"🏆 *{headline} – ਨਤੀਜਾ / ਮੈरਿਟ ਲਿਸਟ ਜਾਰੀ!* 🏆\n\n"
-                  f"ਉਮੀਦਵਾਰਾਂ ਲਈ ਅਧਿਕਾਰਤ ਨਤੀਜਾ ਅਤੇ ਚੋਣ ਸੂਚੀ ਜਾਰੀ ਕਰ ਦਿੱਤੀ ਗਈ ਹੈ।\n\n"
-                  f"🔗 ਰਿਜ਼ਲਟ ਚੈੱਕ ਕਰਨ ਲਈ ਲਿੰਕ:\n👉 {exact_url}\n\nਜਾਣਕਾਰੀ ਲਈ ਜੁੜੇ ਰਹੋ: 👉 Gurpreet Telecom & Cafe")
+                  f"ਉਮੀਦਵਾਰਾਂ ਲਈ ਅਧਿਕਾਰਤ ਨਤੀਜਾ और ਚੋਣ ਸੂਚੀ ਜਾਰੀ कर ਦਿੱਤਾ ਗਿਆ है।\n\n"
+                  f"🔗 ਰਿਜ਼ਲਟ ਚੈੱਕ ਕਰਨ ਲਈ ਲਿੰਕ:\n👉 {exact_url}\n\nਜਾणਕਾਰੀ ਲਈ ਜੁੜੇ ਰਹੋ: 👉 Gurpreet Telecom & Cafe")
     else:
         vac_pa = data.get("total_vacancies", "ਵੱਖ-ਵੱਖ ਅਸਾਮੀਆਂ")
         if vac_pa in ["Various Posts", "Check Official Notice", "Check Notice"]: vac_pa = "ਵੱਖ-ਵੱਖ ਅਸਾਮੀਆਂ"
@@ -603,7 +601,7 @@ def run_pipeline():
         if '.pdf' in doc_url.lower():
             try:
                 pdf_req = urllib.request.Request(doc_url, headers=BROWSER_HEADERS)
-                pdf_bytes = urllib.request.urlopen(pdf_req, context=ssl_ctx, timeout=20).read()
+                pdf_bytes = urllib.request.urlopen(pdf_req, context=ssl_ctx, timeout=25).read()
                 reader = PdfReader(io.BytesIO(pdf_bytes))
                 raw_text = "".join([page.extract_text() or "" for page in reader.pages[:2]])
             except Exception:
@@ -611,7 +609,7 @@ def run_pipeline():
         else:
             try:
                 page_req = urllib.request.Request(doc_url, headers=BROWSER_HEADERS)
-                page_html = urllib.request.urlopen(page_req, context=ssl_ctx, timeout=15).read().decode('utf-8', errors='ignore')
+                page_html = urllib.request.urlopen(page_req, context=ssl_ctx, timeout=20).read().decode('utf-8', errors='ignore')
                 page_soup = BeautifulSoup(page_html, 'html.parser')
                 for script in page_soup(["script", "style"]): script.extract()
                 raw_text = page_soup.get_text(separator=' ', strip=True)[:5000]
@@ -636,6 +634,7 @@ def run_pipeline():
             print(f"  ❌ [एजेंट 4 द्वारा अस्वीकृत]: {reason}")
             mark_processed(doc_url)
             continue
+            
         print(f"  ✅ [एजेंट 4 मंज़ूरी]: {reason}")
 
         success = agent_5_publisher(verified_data["catchy_headline"], complete_post_html, labels_list, verified_data, post_uid)
